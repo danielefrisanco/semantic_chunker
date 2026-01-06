@@ -1,4 +1,5 @@
 # semantic_chunker.gemspec
+require_relative "lib/semantic_chunker/version"
 Gem::Specification.new do |spec|
   spec.name          = "semantic_chunker"
   spec.version       = SemanticChunker::VERSION
@@ -18,6 +19,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "matrix"
   
   # For testing
-  spec.add_development_dependency "rspec"
+  spec.add_development_dependency "rake", "~> 13.0"
+  spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "vcr" # To record LLM API calls
 end
