@@ -9,7 +9,8 @@ adapter = SemanticChunker::Adapters::HuggingFaceAdapter.new(
 
 chunker = SemanticChunker::Chunker.new(
   embedding_provider: adapter,
-  threshold: 0.82 
+  threshold: 0.82,
+  buffer_size: 0
 )
 
 text = [
@@ -29,7 +30,26 @@ puts chunks
 
 chunker = SemanticChunker::Chunker.new(
   embedding_provider: adapter,
-  threshold: 0.5 
+  threshold: 0.5,
+  buffer_size: 0
+)
+
+# text = "Ruby is a dynamic, open source programming language. It has an elegant syntax. However, I also like cooking pasta. Carbonara is made with eggs and guanciale."
+chunks = chunker.chunks_for(text)
+
+puts "With threshold 0.5 Generated #{chunks.size} chunks:"
+puts chunks
+
+puts '-------------'
+
+text = "Ruby is a great programming language for building web apps. Many web apps are built using cloud infrastructure. Cloud infrastructure requires massive data centers in cold climates. Cold climates are ideal for preserving rare Arctic seeds."
+
+
+
+chunker = SemanticChunker::Chunker.new(
+  embedding_provider: adapter,
+  threshold: 0.85,
+  buffer_size: 0
 )
 
 # text = "Ruby is a dynamic, open source programming language. It has an elegant syntax. However, I also like cooking pasta. Carbonara is made with eggs and guanciale."

@@ -1,7 +1,7 @@
 # semantic_chunker.gemspec
 Gem::Specification.new do |spec|
   spec.name          = "semantic_chunker"
-  spec.version       = "0.1.0"
+  spec.version       = SemanticChunker::VERSION
   spec.authors       = ["Daniele Frisanco"]
   spec.email         = ["daniele.frisanco@gmail.com"]
   spec.summary       = "Split long text into chunks based on semantic meaning."
