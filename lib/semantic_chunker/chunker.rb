@@ -31,20 +31,29 @@ module SemanticChunker
 
     def calculate_groups(sentences, embeddings)
       chunks = []
-      current_group = [sentences[0]]
+      current_chunk = [sentences[0]]
 
-      (1...sentences.size).each do |i|
-        similarity = cosine_similarity(embeddings[i - 1], embeddings[i])
+      (0...sentences.size - 1).each do |i|
+        v1 = Vector[*embeddings[i]]
+        v2 = Vector[*embeddings[i+1]]
+        
+        # Cosine Similarity Formula
+        # Ensure we handle the potential for zero magnitude to avoid NaN
+        if v1.magnitude == 0 || v2.magnitude == 0
+          similarity = 0.0
+        else
+          similarity = v1.inner_product(v2) / (v1.magnitude * v2.magnitude)
+        end
 
         if similarity < @threshold
-          chunks << current_group.join(" ")
-          current_group = [sentences[i]]
+          chunks << current_chunk.join(" ")
+          current_chunk = [sentences[i+1]]
         else
-          current_group << sentences[i]
+          current_chunk << sentences[i+1]
         end
       end
 
-      chunks << current_group.join(" ")
+      chunks << current_chunk.join(" ")
       chunks
     end
 

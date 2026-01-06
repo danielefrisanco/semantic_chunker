@@ -43,9 +43,9 @@ require 'semantic_chunker'
 # You can configure the provider globally.
 # This is useful in a Rails initializer for example.
 SemanticChunker.configure do |config|
-  config.provider = SemanticChunker::Adapters::OpenAIAdapter.new(
-    api_key: ENV.fetch("OPENAI_API_KEY"),
-    model: "text-embedding-3-small"
+  config.provider = SemanticChunker::Adapters::HuggingFaceAdapter.new(
+    api_key: ENV.fetch("HUGGING_FACE_API_KEY"),
+    model_name: "sentence-transformers/all-MiniLM-L6-v2"
   )
 end
 
@@ -71,9 +71,9 @@ You can configure the embedding provider globally, which is useful in frameworks
 ```ruby
 # config/initializers/semantic_chunker.rb
 SemanticChunker.configure do |config|
-  config.provider = SemanticChunker::Adapters::OpenAIAdapter.new(
-    api_key: ENV.fetch("OPENAI_API_KEY"),
-    model: "text-embedding-3-small" # optional, defaults to text-embedding-3-small
+  config.provider = SemanticChunker::Adapters::HuggingFaceAdapter.new(
+    api_key: ENV.fetch("HUGGING_FACE_API_KEY"),
+    model_name: "sentence-transformers/all-MiniLM-L6-v2"
   )
 end
 ```
@@ -83,8 +83,8 @@ end
 You can also pass a provider directly to the `Chunker` instance. This will override any global configuration.
 
 ```ruby
-provider = SemanticChunker::Adapters::OpenAIAdapter.new(api_key: "your-key")
-chunker = SemanticChunker::Chunker.new(embedding_provider: provider)
+provider = SemanticChunker::Adapters::HuggingFaceAdapter.new(api_key: "your-key")
+chunker = SemanticChunker::Chunker.new(provider: provider)
 ```
 
 ### Threshold
@@ -107,6 +107,7 @@ chunker = SemanticChunker::Chunker.new(threshold: 0.9)
 The gem is designed to be extensible with different embedding providers. It currently ships with:
 
 - `SemanticChunker::Adapters::OpenAIAdapter`: For OpenAI's embedding models.
+- `SemanticChunker::Adapters::HuggingFaceAdapter`: For Hugging Face's embedding models.
 - `SemanticChunker::Adapters::TestAdapter`: A simple adapter for testing purposes.
 
 You can create your own adapter by creating a class that inherits from `SemanticChunker::Adapters::Base` and implements an `embed(sentences)` method.
@@ -125,18 +126,25 @@ Run the unit tests with:
 
 ### Integration Tests
 
-The integration test uses the OpenAI API and requires an API key.
+The integration tests use third-party APIs and require API keys.
 
-    $ OPENAI_API_KEY="your-key" bundle exec ruby test_integration.rb
+**OpenAI**
+```bash
+$ OPENAI_API_KEY="your-key" bundle exec ruby test_integration.rb
+```
+
+**Hugging Face**
+```bash
+$ HUGGING_FACE_API_KEY="your-key" bundle exec ruby test_hugging_face.rb
+```
 
 ### Security Note: Handling API Keys
 
-When using the OpenAIAdapter, **never hardcode your API keys** directly into your source code. To keep your application secure (especially if you are working on public repositories), use one of the following methods:
+When using an adapter that requires an API key, **never hardcode your API keys** directly into your source code. To keep your application secure (especially if you are working on public repositories), use one of the following methods:
 
 #### Using Rails Credentials (Recommended for Rails)
 
 Store your key in your encrypted credentials file:
-
 ```bash
   bin/rails credentials:edit
 ```
@@ -145,8 +153,8 @@ Then reference it in your initializer:
 
 ```ruby
 SemanticChunker.configure do |config|
-  config.provider = SemanticChunker::Adapters::OpenAIAdapter.new(       
-    api_key: Rails.application.credentials.dig(:openai, :api_key)
+  config.provider = SemanticChunker::Adapters::HuggingFaceAdapter.new(       
+    api_key: Rails.application.credentials.dig(:hugging_face, :api_key)
   )
 end
 ```
@@ -156,7 +164,7 @@ end
 Alternatively, use a gem like dotenv and fetch the key from the environment:
 
 ```ruby
-api_key = ENV.fetch("OPENAI_API_KEY") { raise "Missing OpenAI API Key" }
+api_key = ENV.fetch("YOUR_API_KEY") { raise "Missing API Key" }
 ```
    
 ## Contributing

@@ -5,7 +5,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Daniele Frisanco"]
   spec.email         = ["daniele.frisanco@gmail.com"]
   spec.summary       = "Split long text into chunks based on semantic meaning."
-  spec.description       = "Split long text into chunks based on semantic meaning."
+  spec.description   = "Split long text into chunks based on semantic meaning."
 
   spec.homepage      = "https://github.com/danielefrisanco/semantic_chunker"
 

@@ -8,4 +8,5 @@ group :development, :test do
   # Extensions for common Ruby idioms and performance checks
   gem 'rubocop-performance'
   gem 'rubocop-rails' # Good to include even for a general gem
+  gem 'dotenv', '~> 3.1'
 end
