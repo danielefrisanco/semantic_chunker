@@ -1,0 +1,48 @@
+require:
+  - rubocop-performance
+  - rubocop-rails # Even if this is a non-Rails gem, many conventions apply
+
+AllCops:
+  # Exclude common files that aren't source code
+  Exclude:
+    - 'bin/*'
+    - 'vendor/**/*'
+    - 'spec/fixtures/**/*'
+    - 'Gemfile'
+    - 'Rakefile'
+    - '**/*.gemspec'
+  # Target the Ruby version you are developing against (e.g., 3.2 is modern)
+  TargetRubyVersion: 3.2
+  NewCops: enable
+
+# === Layout Cops (Formatting) ===
+Layout/LineLength:
+  # Relax line length for documentation/complex setup in specs
+  Max: 120
+  IgnoredPatterns: ['\.gemspec']
+
+# === Style Cops (Idiomatic Ruby) ===
+Style/Documentation:
+  # Gems often skip documenting simple classes/modules
+  Enabled: false
+Style/ClassAndModuleChildren:
+  # Use the standard, compact (nested) style: 
+  # e.g., 'module A; class B; end; end' instead of 'class A::B'
+  EnforcedStyle: nested
+Style/FrozenStringLiteralComment:
+  # Enable the magic comment for performance in modern Ruby
+  Enabled: true
+Style/ClassMethods:
+  # Use self.method_name for class methods
+  EnforcedStyle: self_name
+
+# === Performance Cops ===
+# Performance cops are helpful for writing efficient code
+Performance/FlatMap:
+  Enabled: true
+
+# === Naming Cops ===
+Naming/FileName:
+  # Allow the standard gem entry point file to have a hyphen
+  Exclude:
+    - 'exe/omniauth-syncer'

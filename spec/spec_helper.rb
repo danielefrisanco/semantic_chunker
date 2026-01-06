@@ -1,0 +1,17 @@
+# Include the current directory in the load path (necessary for Rubygems/Bundler)
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
+
+# Load the main gem file
+require 'semantic_chunker'
+
+RSpec.configure do |config|
+  # Enable flags like --only-failures and --next-failure
+  config.example_status_persistence_file_path = '.rspec_status'
+
+  # Disable RSpec exposing methods globally on `Module` and `main`
+  config.disable_monkey_patching!
+
+  config.expect_with :rspec do |c|
+    c.syntax = :expect
+  end
+end

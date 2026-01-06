@@ -1,0 +1,7 @@
+# .gitignore
+/.bundle/
+/vendor/bundle/
+/spec/examples.txt
+.rspec_status
+.env
+*.gem
