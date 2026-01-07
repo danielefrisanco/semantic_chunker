@@ -10,3 +10,7 @@ group :development, :test do
   gem 'rubocop-rails' # Good to include even for a general gem
   gem 'dotenv', '~> 3.1'
 end
+group :test do
+  gem "rspec"
+  gem "webmock"
+end

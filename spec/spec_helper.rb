@@ -1,9 +1,11 @@
 # Include the current directory in the load path (necessary for Rubygems/Bundler)
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require "bundler/setup"
+require 'webmock/rspec'
 # Load the main gem file
 require 'semantic_chunker'
 require 'matrix'
+WebMock.disable_net_connect!(allow_localhost: true)
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = '.rspec_status'

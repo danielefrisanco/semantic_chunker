@@ -404,6 +404,22 @@ semantic_chunker --format json document.txt
 | -f		| --format		| Output format (text or json)	| 	text
 | -v		| --version		| Show version info		| -
 
+
+## Reliability & Resilience
+
+The Hugging Face adapter is built for production-grade reliability:
+- **Exponential Backoff**: Automatically retries requests if the model is warming up or the API is busy.
+- **Smart Timeouts**: Includes connection and read timeouts to prevent your application from hanging.
+- **Auto-Wait**: Uses the `X-Wait-For-Model` header to ensure stable results on the Inference API.
+
+
+## 🚀 Roadmap to v1.0.0
+- [x] Adaptive Dynamic Thresholding
+- [x] CLI with JSON output
+- [x] Robust error handling and retries
+- [ ] **Next:** Local embedding cache (reduce API costs)
+- [ ] **Next:** Drift protection (Anchor-sentence comparison)
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/danielefrisanco/semantic_chunker.

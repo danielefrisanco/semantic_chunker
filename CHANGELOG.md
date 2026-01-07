@@ -1,7 +1,32 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+[0.6.2] - 2026-01-07
+----------------------
 
+### Added
+
+*   **Command Line Interface (CLI)**: Introduced bin/semantic\_chunker allowing users to chunk files or piped text directly from the terminal.
+    
+*   **JSON Output**: Added --format json flag to the CLI for easy integration with Python, Node.js, and other data pipelines.
+    
+*   **Net::HTTP Timeouts**: Added open\_timeout and read\_timeout to the Hugging Face adapter to prevent application hangs during network instability.
+    
+*   **Exponential Backoff**: Implemented a retry strategy for the Hugging Face API that waits progressively longer if the model is currently "loading" or "warming up."
+    
+*   **Unit Testing Suite**: Established an RSpec test suite using **WebMock** to simulate API responses and verify retry/timeout logic without making real network calls.
+    
+
+### Changed
+
+*   **Hugging Face Resilience**: Improved the adapter to handle transient 503 errors and "Model cold start" scenarios more gracefully using the X-Wait-For-Model header.
+    
+*   **CLI Performance**: Added local load path handling to allow running the CLI during development without requiring the gem to be installed globally.
+    
+
+### Fixed
+
+*   **Unstable Network Hangs**: Fixed an issue where a slow response from the embedding provider could block the Ruby process indefinitely.
 ## [0.6.0] - 2026-01-07
 
 ### Added
