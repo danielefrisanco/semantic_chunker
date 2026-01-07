@@ -56,11 +56,14 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
-          bundler-cache: true
-          # Add this line to allow the lockfile to be slightly different if needed
-          cache-version: 1
+          # DISABLE the strict cache here too
+          bundler-cache: false 
 
-      # Re-build to ensure the gem contains the latest version.rb changes
+      - name: Install Dependencies
+        run: |
+          gem install bundler
+          bundle install
+
       - name: Build Gem
         run: gem build *.gemspec
 
