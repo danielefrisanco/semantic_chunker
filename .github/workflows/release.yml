@@ -23,15 +23,14 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
-        # This automatically handles the Bundler version in your Gemfile.lock
-        bundler: 'latest' 
-        bundler-cache: true
+        # Setting bundler-cache to true ONLY works if Gemfile.lock is committed and matches gemspec
+        bundler-cache: true 
 
     - name: Run RSpec
       run: bundle exec rspec
 
   publish:
-    name: Publish to RubyGems
+    name: Publish to RubyGems (OIDC)
     runs-on: ubuntu-latest
     needs: test
     if: github.event_name == 'release' && github.event.action == 'published'
@@ -41,14 +40,20 @@ jobs:
       id-token: write
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true 
 
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.3'
-        bundler-cache: true
+      # Re-build to ensure the gem contains the latest version.rb changes
+      - name: Build Gem
+        run: gem build *.gemspec
 
-    - name: Publish Gem
-      uses: rubygems/release-gem@v1
+      - name: Publish Gem to RubyGems.org via OIDC
+        uses: rubygems/release-gem@v1

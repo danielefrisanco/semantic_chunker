@@ -35,6 +35,29 @@ RSpec.describe SemanticChunker::Chunker do
       end
     end
 
+    context "with Custom Segmenter Options" do
+      let(:chunker_hy) do 
+        described_class.new(
+          embedding_provider: fake_adapter,
+          segmenter_options: { language: 'hy' }
+        )
+      end
+
+      it "passes custom language options to the segmenter" do
+        # Armenian text with specific sentence markers (:)
+        text = "Այսօր երկուշաբթի է: Ես գնում եմ աշխատանքի:"
+        
+        # If language: 'hy' is passed correctly, it should find 2 sentences.
+        # If it uses default English, it might fail to split or split incorrectly.
+        expect(fake_adapter).to receive(:embed).with(anything) do |groups|
+          expect(groups.size).to eq(2)
+          Array.new(2) { [1, 0] }
+        end
+
+        chunker_hy.chunks_for(text)
+      end
+    end
+    
     context "with Centroid Comparison" do
       it "splits when the new sentence drifts from the chunk average" do
         text = "Start topic. Still same. Change topic."

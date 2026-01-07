@@ -1,6 +1,6 @@
 # Include the current directory in the load path (necessary for Rubygems/Bundler)
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
-
+require "bundler/setup"
 # Load the main gem file
 require 'semantic_chunker'
 require 'matrix'
