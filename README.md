@@ -301,6 +301,7 @@ SemanticChunker.configure do |config|
 end
 ```
 
+
 #### Using Environment Variables
 
 Alternatively, use a gem like dotenv and fetch the key from the environment:
@@ -334,6 +335,75 @@ If you receive a 503 Service Unavailable error when using the Hugging Face adapt
 If your text contains complex Unicode or non-UTF-8 characters, pragmatic\_segmenter may behave unexpectedly.
 
 *   **Solution:** Ensure your input string is UTF-8 encoded: text.encode('UTF-8', invalid: :replace, undef: :replace).
+
+
+## Command Line Interface (CLI)
+
+SemanticChunker includes a powerful CLI that allows you to chunk files or piped text directly from your terminal. This is ideal for quick testing or integrating with non-Ruby applications.
+
+### Installation
+
+The CLI is included when you install the gem:
+
+```bash
+  gem install semantic_chunker
+```
+### Usage
+
+The CLI will automatically look for your HUGGING\_FACE\_API\_KEY or OPENAI\_API\_KEY in your environment or a .env file.
+
+```bash
+# Basic usage with automatic thresholding
+semantic_chunker --threshold auto path/to/document.txt
+
+# Specify a static threshold and max chunk size
+semantic_chunker -t 0.85 -m 1000 document.txt
+
+# Pipe text from another command
+echo "Long text here..." | semantic_chunker -t auto
+```
+### JSON Output
+
+For integration with other languages (Python, Node.js) or databases, you can output the result as structured JSON:
+
+```bash
+semantic_chunker --format json document.txt
+```
+
+**Example JSON Output:**
+
+```json
+{
+  "metadata": {
+    "source": "document.txt",
+    "chunk_count": 2,
+    "threshold_used": "auto"
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "content": "First semantic topic...",
+      "size": 245
+    },
+    {
+      "index": 1,
+      "content": "Second semantic topic...",
+      "size": 180
+    }
+  ]
+}
+```
+
+### Options
+
+| Flag	| Long	|  Flag		| Description	| 	Default	| 
+| -	| -	| -	| -	| -	| 
+| -t		| --threshold		| Similarity threshold (float or auto)	| 	auto
+| -m		| --max-size		| Hard limit for character count per chunk		| 1500
+| -b		| --buffer		| Context window size (int or auto)	| 	auto
+| -f		| --format		| Output format (text or json)	| 	text
+| -v		| --version		| Show version info		| -
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/danielefrisanco/semantic_chunker.

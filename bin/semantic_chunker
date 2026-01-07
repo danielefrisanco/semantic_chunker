@@ -1,0 +1,70 @@
+#!/usr/bin/env ruby
+
+# Add the local lib directory to the load path
+$LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
+
+require 'optparse'
+require 'semantic_chunker'
+require 'dotenv'
+Dotenv.load
+
+options = {
+  threshold: :auto,
+  max_size: 1500,
+  buffer: :auto
+}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: semantic_chunker [options] <file>"
+  opts.on("-t", "--threshold VAL", "Threshold (float, :auto)") { |v| options[:threshold] = v == 'auto' ? :auto : v.to_f }
+  opts.on("-m", "--max-size VAL", Integer, "Max character size") { |v| options[:max_size] = v }
+  opts.on("-f", "--format FORMAT", [:text, :json], "Output format (text, json)") { |v| options[:format] = v }
+  opts.on("-b", "--buffer VAL", "Buffer size (int, :auto)") { |v| options[:buffer] = v == 'auto' ? :auto : v.to_i }
+  opts.on("-v", "--version", "Show version") do
+    puts SemanticChunker::VERSION
+    exit
+  end
+end.parse!
+
+input_file = ARGV[0]
+text = input_file ? File.read(input_file) : ARGF.read
+
+if text.nil? || text.empty?
+  puts "Error: No input text provided."
+  exit 1
+end
+provider = if ENV['HUGGING_FACE_API_KEY']
+             SemanticChunker::Adapters::HuggingFaceAdapter.new(api_key: ENV['HUGGING_FACE_API_KEY'])
+           elsif ENV['OPENAI_API_KEY']
+             # Assuming you have an OpenAI adapter
+             SemanticChunker::Adapters::OpenAIAdapter.new(api_key: ENV['OPENAI_API_KEY'])
+           else
+             puts "Error: No API key found (HUGGING_FACE_API_KEY or OPENAI_API_KEY)."
+             exit 1
+           end
+
+# Assuming provider is configured via ENV/Dotenv
+chunker = SemanticChunker::Chunker.new(
+  embedding_provider: provider,
+  threshold: options[:threshold],
+  max_chunk_size: options[:max_size],
+  buffer_size: options[:buffer]
+)
+
+chunks = chunker.chunks_for(text)
+if options[:format] == :json
+  puts JSON.pretty_generate({
+    metadata: {
+      source: input_file || "stdin",
+      chunk_count: chunks.size,
+      threshold_used: options[:threshold]
+    },
+    chunks: chunks.map.with_index { |c, i| { index: i, content: c, size: c.length } }
+  })
+else
+  chunks.each_with_index do |chunk, i|
+    puts "--- Chunk #{i + 1} ---"
+    puts chunk
+    puts "\n"
+  end
+end

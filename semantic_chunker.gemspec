@@ -15,10 +15,17 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Metadata for RubyGems
-  spec.metadata["homepage_uri"]    = spec.homepage
-  spec.metadata["source_code_uri"] = spec.homepage
-  spec.metadata["changelog_uri"]   = "https://github.com/danielefrisanco/semantic_chunker/blob/main/CHANGELOG.md"
-
+  spec.metadata = {
+    "homepage_uri"      => spec.homepage,
+    "source_code_uri"   => spec.homepage,
+    "changelog_uri"     => "https://github.com/danielefrisanco/semantic_chunker/blob/main/CHANGELOG.md",
+    "bug_tracker_uri"   => "https://github.com/danielefrisanco/semantic_chunker/issues",
+    "documentation_uri" => "https://www.rubydoc.info/gems/semantic_chunker/#{spec.version}",
+    "allowed_push_host" => "https://rubygems.org"
+  }
+  spec.bindir        = "bin"
+  spec.executables   = ["semantic_chunker"]
+  spec.required_ruby_version = ">= 3.0.0"
   # Dependencies
   spec.add_dependency "pragmatic_segmenter", "~> 0.3"
   spec.add_dependency "matrix", "~> 0.4" # Required for Ruby 3.1+, safe for 3.0
