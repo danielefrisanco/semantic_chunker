@@ -35,7 +35,6 @@ jobs:
 
     - name: Install Dependencies
       run: bundle install --jobs 4 --retry 3
-
   publish:
     name: Publish to RubyGems (OIDC)
     runs-on: ubuntu-latest
@@ -56,16 +55,18 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
-          # DISABLE the strict cache here too
+          # We use false here because if the lockfile is slightly 
+          # out of sync, 'true' will kill the build with Error 16.
           bundler-cache: false 
 
-      - name: Install Dependencies
+      - name: Install Dependencies for Build
         run: |
           gem install bundler
           bundle install
 
-      - name: Build Gem
-        run: gem build *.gemspec
+      - name: Build Gem (Ensure latest version)
+        # Using rake build ensures your metadata is fresh
+        run: bundle exec rake build
 
       - name: Publish Gem to RubyGems.org via OIDC
         uses: rubygems/release-gem@v1
