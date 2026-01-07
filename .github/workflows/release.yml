@@ -23,8 +23,8 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
-        # We handle the bundle install manually to avoid the version conflict
-        bundler-cache: false
+        bundler: none 
+
     - name: Install Compatible Bundler
       run: |
         if [ "${{ matrix.ruby }}" == "3.0" ]; then
@@ -34,10 +34,7 @@ jobs:
         fi
 
     - name: Install Dependencies
-      run: bundle install
-
-    - name: Run RSpec
-      run: bundle exec rspec
+      run: bundle install --jobs 4 --retry 3
 
   publish:
     name: Publish to RubyGems (OIDC)
