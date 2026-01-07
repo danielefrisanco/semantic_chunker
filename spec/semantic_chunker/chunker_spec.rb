@@ -57,7 +57,7 @@ RSpec.describe SemanticChunker::Chunker do
         chunker_hy.chunks_for(text)
       end
     end
-    
+
     context "with Centroid Comparison" do
       it "splits when the new sentence drifts from the chunk average" do
         text = "Start topic. Still same. Change topic."
@@ -106,6 +106,58 @@ RSpec.describe SemanticChunker::Chunker do
         end
 
         chunker.chunks_for(text)
+      end
+    end
+    context "with Dynamic Thresholding (:auto)" do
+      let(:chunker) do
+        described_class.new(
+          embedding_provider: fake_adapter,
+          threshold: :auto,
+          buffer_size: 0 # Disable buffer for predictable similarity tests
+        )
+      end
+
+      it "splits at the relative 'valley' of similarity even if absolute similarity is low" do
+        # Topic A sentences have 0.45 similarity to each other
+        # Transition to Topic B has 0.20 similarity
+        # Topic B sentences have 0.45 similarity to each other
+        
+        # We simulate a "Low Similarity" model where 0.82 would never work
+        allow(fake_adapter).to receive(:embed).and_return([
+          [1, 0], [0.9, 0.1], # Similarity ~0.45
+          [0.1, 0.9], [0, 1]  # Similarity ~0.45
+        ])
+
+        text = "Topic A1. Topic A2. Topic B1. Topic B2."
+        result = chunker.chunks_for(text)
+
+        # It should split into 2 chunks because the jump from A2 to B1 
+        # is the bottom percentile of similarity in this specific doc.
+        expect(result.size).to eq(2)
+        expect(result[0]).to include("Topic A1. Topic A2.")
+        expect(result[1]).to include("Topic B1. Topic B2.")
+      end
+
+      it "respects a custom percentile hash" do
+        # Example of user wanting a more aggressive split
+        chunker_strict = described_class.new(
+          embedding_provider: fake_adapter,
+          threshold: { percentile: 50 }
+        )
+        
+        allow(fake_adapter).to receive(:embed).and_return([[1,0], [0.9, 0.1], [0.5, 0.5]])
+        
+        # With 50th percentile, it should split more easily
+        result = chunker_strict.chunks_for("Sentence 1. Sentence 2. Sentence 3.")
+        expect(result.size).to be >= 2
+      end
+      it "clamps the threshold to 0.95 if the document is perfectly uniform" do
+        # All vectors are the same [1, 0]
+        allow(fake_adapter).to receive(:embed).and_return([[1, 0], [1, 0], [1, 0]])
+        
+        # Percentile 15 of [1.0, 1.0] is 1.0. 
+        # Clamp should bring it down to 0.95.
+        expect(chunker.send(:resolve_threshold, [[1, 0], [1, 0], [1, 0]])).to eq(0.95)
       end
     end
   end

@@ -85,6 +85,55 @@ chunks.each_with_index do |chunk, i|
   puts "---"
 end
 ```
+
+## Rails Integration
+
+For Rails applications, here is a recommended setup:
+
+### 1. Initializer
+
+Create an initializer to configure the gem globally. This is where you should set up your embedding provider using Rails credentials.
+
+```ruby
+# config/initializers/semantic_chunker.rb
+SemanticChunker.configure do |config|
+  config.provider = SemanticChunker::Adapters::HuggingFaceAdapter.new(
+    api_key: Rails.application.credentials.dig(:hugging_face, :api_key),
+    model: "sentence-transformers/all-MiniLM-L6-v2"
+  )
+end
+```
+
+### 2. Model Usage
+
+You can use the chunker within your models, for example, to chunk a document's content before saving or for indexing in a search engine.
+
+```ruby
+# app/models/document.rb
+class Document < ApplicationRecord
+  def semantic_chunks
+    chunker = SemanticChunker::Chunker.new
+    chunker.chunks_for(self.content)
+  end
+end
+```
+
+### 3. Caching
+
+To avoid re-embedding the same content, which can be slow and costly, consider implementing a caching strategy. You can cache the embeddings or the final chunks. Here is a simple example using `Rails.cache`:
+
+```ruby
+# app/models/document.rb
+class Document < ApplicationRecord
+  def semantic_chunks
+    Rails.cache.fetch("document_#{self.id}_chunks", expires_in: 12.hours) do
+      chunker = SemanticChunker::Chunker.new
+      chunker.chunks_for(self.content)
+    end
+  end
+end
+```
+
 ## Configuration
 
 ### Sentence Splitting (Pragmatic Segmenter)
@@ -150,7 +199,23 @@ chunker = SemanticChunker::Chunker.new(threshold: 0.7)
 # Higher threshold, more chunks
 chunker = SemanticChunker::Chunker.new(threshold: 0.9)
 ```
+### Dynamic Thresholding (v0.6.0)
 
+With the introduction of **Dynamic Thresholding**, SemanticChunker is now model-agnostic. It automatically adapts to the vector density of different embedding models (e.g., OpenAI, E5, BGE, or Hugging Face).
+
+### Threshold Modes
+
+| Mode | Syntax | Description | 
+ | - | - | - | 
+| Static | `0.82` | Splits when similarity drops below a fixed number. Use this if you have a specific model tuned to a known threshold. | 
+| Auto | `:auto` | (Default) Calculates the 15th percentile of similarities in the document and splits at the "valleys." | 
+| Percentile | `{ percentile: 10 }` | Advanced control. A lower percentile creates fewer, larger chunks; a higher percentile creates more, smaller chunks. | 
+
+### Which one should I use?
+
+*   **Use :auto** if you are swapping models frequently or using open-source models from Hugging Face. It prevents the "One Giant Chunk" bug that happens when models have low similarity ranges.
+    
+*   **Use a Static number** if you require strictly deterministic behavior across different documents and know your model's distribution.
 ### Buffer Windows (Buffer Size)
 
 The buffer\_size parameter defines a sliding "context window." Instead of embedding a single sentence in isolation, the chunker combines a sentence with its neighbors. This "semantic smoothing" prevents false splits caused by short sentences or pronouns (like "He" or "It") that lack context.

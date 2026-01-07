@@ -208,3 +208,16 @@ Your gem solves a real problem and the core algorithm (centroid-based with buffe
 **Rating: 6.5/10** - Good idea, decent implementation, needs polish before production use.
 
 **Recommendation:** Release as 0.x version, clearly mark as "beta", fix the core issues, gather feedback, then push for 1.0. The Ruby community needs this - just needs more maturity!
+
+
+Based on the TODO.md and the current code, here are the main areas for improvement:
+
+Dynamic Thresholding: The current fixed threshold could be improved with dynamic methods like percentiles or standard deviation for better model and document adaptability.
+Hugging Face Adapter: The TODO.md highlights issues with the Hugging Face adapter; fixing and testing it is a priority.
+Testing: The TODO.md notes a lack of tests. A comprehensive test suite is crucial for reliability.
+Performance: The TODO.md suggests implementing a local cache for embeddings to avoid redundant API calls.
+====Rails Integration: A Rails integration example would broaden the gem's appeal.
+CLI Tool: A command-line interface would simplify experimentation.
+Streaming Support: Streaming for long documents would improve memory efficiency.
+Error Handling: The TODO.md suggests more descriptive API error messages.
+
