@@ -1,5 +1,6 @@
 # lib/semantic_chunker/chunker.rb
 require 'matrix'
+require 'pragmatic_segmenter'
 
 module SemanticChunker
   class Chunker
@@ -7,18 +8,19 @@ module SemanticChunker
     DEFAULT_BUFFER = 1
     DEFAULT_MAX_SIZE = 1500 # Characters
 
-    def initialize(embedding_provider: nil, threshold: DEFAULT_THRESHOLD, buffer_size: DEFAULT_BUFFER, max_chunk_size: DEFAULT_MAX_SIZE)
+    def initialize(embedding_provider: nil, threshold: DEFAULT_THRESHOLD, buffer_size: DEFAULT_BUFFER, max_chunk_size: DEFAULT_MAX_SIZE, segmenter_options: {})
       @provider = embedding_provider || SemanticChunker.configuration&.provider
       @threshold = threshold
       @buffer_size = buffer_size
       @max_chunk_size = max_chunk_size
+      @segmenter_options = segmenter_options # e.g., { language: 'hy', doc_type: 'pdf' }
 
       raise ArgumentError, "A provider must be configured" if @provider.nil?
     end
 
     def chunks_for(text)
+      return [] if text.nil? || text.strip.empty?
       sentences = split_sentences(text)
-      return [text] if sentences.size <= 1
 
       # Step 1: Logic to determine the best buffer window
       effective_buffer = determine_buffer(sentences)
@@ -58,7 +60,9 @@ module SemanticChunker
     end
 
     def split_sentences(text)
-      text.split(/(?<=[.!?])\s+/)
+      options = @segmenter_options.merge(text: text)
+      ps = PragmaticSegmenter::Segmenter.new(**options)
+      ps.segment
     end
 
     def calculate_groups(sentences, embeddings)

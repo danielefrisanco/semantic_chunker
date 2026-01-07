@@ -21,17 +21,25 @@ This results in chunks of text that are topically coherent.
 
 This gem requires Ruby 3.0 or higher.
 
-## Installation
+Installation
+------------
 
-This gem relies on the `matrix` standard library for vector calculations. While it is included with most Ruby installations, some minimal environments may require you to add it to your `Gemfile`:
+This gem relies on two key dependencies for its logic:
+
+1.  **matrix**: Used for high-performance vector calculations and centroid math.
+    
+2.  **pragmatic\_segmenter**: Used for rule-based sentence boundary detection (handling abbreviations, initials, and citations).
+    
+
+Add these lines to your application's Gemfile:
 
 ```ruby
+# Required for Ruby 3.1+ 
 gem 'matrix'
-```
 
-Add this line to your application's Gemfile:
+# Required for high-quality sentence splitting
+gem 'pragmatic_segmenter'
 
-```ruby
 gem 'semantic_chunker'
 ```
 
@@ -77,8 +85,30 @@ chunks.each_with_index do |chunk, i|
   puts "---"
 end
 ```
-
 ## Configuration
+
+### Sentence Splitting (Pragmatic Segmenter)
+
+This gem uses `pragmatic_segmenter` for high-quality sentence splitting. You can pass options directly to it using the `segmenter_options` hash during chunker initialization. This is useful for handling different languages or document types.
+
+The following options are available:
+- `language`: Specifies the language of the text (e.g., `'en'` for English, `'hy'` for Armenian).
+- `doc_type`: Optimizes segmentation for specific document formats (e.g., `'pdf'`).
+- `clean`: When `false`, disables the preliminary text cleaning process.
+
+**Examples:**
+
+```ruby
+# Example 1: Processing an Armenian PDF
+chunker = SemanticChunker::Chunker.new(
+  segmenter_options: { language: 'hy', doc_type: 'pdf' }
+)
+
+# Example 2: Disabling text cleaning for strict raw data
+chunker = SemanticChunker::Chunker.new(
+  segmenter_options: { clean: false }
+)
+```
 
 ### Global Configuration
 
@@ -214,6 +244,31 @@ Alternatively, use a gem like dotenv and fetch the key from the environment:
 api_key = ENV.fetch("YOUR_API_KEY") { raise "Missing API Key" }
 ```
    
+
+## Troubleshooting
+---------------
+
+### Matrix Dependency (Ruby 3.1+)
+
+Since Ruby 3.1, the matrix library was moved from the standard library to a bundled gem.
+
+*   **If you are on Ruby 3.1, 3.2, or 3.3:** You must include gem 'matrix' in your Gemfile.
+    
+*   **If you are on Ruby 3.0:** The library is built-in. If you see a "duplicate dependency" error, ensure you are not manually adding gem 'matrix' to your Gemfile, as the system version will take precedence.
+    
+
+### Hugging Face "Model Loading"
+
+If you receive a 503 Service Unavailable error when using the Hugging Face adapter, it usually means the model is being loaded onto the server for the first time.
+
+*   **Solution:** Wait 30 seconds and try again. The HuggingFaceAdapter is designed to be lightweight, but serverless endpoints require a "warm-up" period.
+    
+
+### Encoding Issues
+
+If your text contains complex Unicode or non-UTF-8 characters, pragmatic\_segmenter may behave unexpectedly.
+
+*   **Solution:** Ensure your input string is UTF-8 encoded: text.encode('UTF-8', invalid: :replace, undef: :replace).
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/danielefrisanco/semantic_chunker.

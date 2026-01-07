@@ -1,8 +1,9 @@
 PATH
   remote: .
   specs:
-    semantic_chunker (0.4.1)
+    semantic_chunker (0.4.2)
       matrix
+      pragmatic_segmenter
 
 GEM
   remote: https://rubygems.org/
@@ -40,6 +41,7 @@ GEM
     parser (3.3.10.0)
       ast (~> 2.4.1)
       racc
+    pragmatic_segmenter (0.3.24)
     prism (1.7.0)
     racc (1.8.1)
     rack (3.2.4)
