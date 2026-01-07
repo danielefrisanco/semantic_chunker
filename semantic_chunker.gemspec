@@ -20,9 +20,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "vcr" # To record LLM API calls
-  spec.add_dependency "pragmatic_segmenter"
+  spec.add_dependency "pragmatic_segmenter", "~> 0.3"
   if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.1")
   # Standard math library for vector operations
-    spec.add_dependency "matrix"
+    spec.add_dependency "matrix", "~> 0.4"
   end
 end
