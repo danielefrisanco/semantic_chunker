@@ -23,8 +23,18 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
-        # Setting bundler-cache to true ONLY works if Gemfile.lock is committed and matches gemspec
-        bundler-cache: true 
+        # We handle the bundle install manually to avoid the version conflict
+        bundler-cache: false
+    - name: Install Compatible Bundler
+      run: |
+        if [ "${{ matrix.ruby }}" == "3.0" ]; then
+          gem install bundler -v '2.4.22'
+        else
+          gem install bundler
+        fi
+
+    - name: Install Dependencies
+      run: bundle install
 
     - name: Run RSpec
       run: bundle exec rspec
