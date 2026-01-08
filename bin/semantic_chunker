@@ -3,8 +3,8 @@
 # Add the local lib directory to the load path
 $LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
 
-require 'optparse'
 require 'semantic_chunker'
+require 'optparse'
 require 'dotenv'
 Dotenv.load
 

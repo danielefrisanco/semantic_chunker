@@ -5,7 +5,7 @@ require 'json'
 require 'net/http'
 
 # 2. Require the version and base modules
-require_relative 'semantic_chunker/version' if File.exist?('lib/semantic_chunker/version.rb')
+require_relative 'semantic_chunker/version'
 
 # 3. Require the internal logic
 require_relative 'semantic_chunker/adapters/base'
