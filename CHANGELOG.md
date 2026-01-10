@@ -1,6 +1,12 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [0.6.3] - 2026-01-10
+### Added
+- **YARD Documentation**: Added YARD documentation to all classes and methods in the `lib` directory.
+- **Rake Task**: Added a `yard` rake task to generate documentation.
+
 [0.6.2] - 2026-01-07
 ----------------------
 

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    semantic_chunker (0.6.2)
+    semantic_chunker (0.6.3)
       matrix (~> 0.4)
       pragmatic_segmenter (~> 0.3)
 

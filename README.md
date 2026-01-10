@@ -280,6 +280,15 @@ $ OPENAI_API_KEY="your-key" bundle exec ruby test_integration.rb
 $ HUGGING_FACE_API_KEY="your-key" bundle exec ruby test_hugging_face.rb
 ```
 
+### Documentation
+
+This project uses YARD for documentation. To generate the documentation, run:
+```bash
+bundle exec rake yard
+```
+
+This will generate the documentation in the `docs` directory.
+
 ### Security Note: Handling API Keys
 
 When using an adapter that requires an API key, **never hardcode your API keys** directly into your source code. To keep your application secure (especially if you are working on public repositories), use one of the following methods:
