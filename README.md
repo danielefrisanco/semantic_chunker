@@ -422,12 +422,53 @@ The Hugging Face adapter is built for production-grade reliability:
 - **Auto-Wait**: Uses the `X-Wait-For-Model` header to ensure stable results on the Inference API.
 
 
-## 🚀 Roadmap to v1.0.0
-- [x] Adaptive Dynamic Thresholding
-- [x] CLI with JSON output
-- [x] Robust error handling and retries
-- [ ] **Next:** Local embedding cache (reduce API costs)
-- [ ] **Next:** Drift protection (Anchor-sentence comparison)
+## ### Roadmap to v1.0.0
+
+#### **v0.6.x: Stability & Core Logic**
+
+*   \[x\] **Adaptive Dynamic Thresholding:** Core semantic splitting logic.
+    
+*   \[x\] **CLI with JSON output:** Global execution and piping support.
+    
+*   \[x\] **Robust Error Handling:** API retry logic and validation.
+    
+*   \[ \] **Anchor-Sentence Drift Protection:** Prevents topic-bleed by comparing current sentences against the chunk's starting "anchor."
+    
+*   \[ \] **Multiple Breakpoint Strategies:** Support for Percentile, StandardDeviation, and Interquartile range splitting (Claude's suggestion).
+    
+
+#### **v0.7.x: Performance & Efficiency**
+
+*   \[ \] **Local Embedding Cache:** SQLite or file-based cache to store sentence embeddings (saves $$$ and speeds up repeated runs).
+    
+*   \[ \] **Batch Processing:** Support for batching multiple sentences into a single API call to HuggingFace/OpenAI.
+    
+*   \[ \] **Progress Indicators:** CLI progress bars for large document processing.
+    
+
+#### **v0.8.x: RAG & Enterprise Features**
+
+*   \[ \] **Rich Metadata Support:** Return Chunk objects instead of raw strings, including source, index, and token counts.
+    
+*   \[ \] **Contextual Overlap:** Support for "sliding window" overlap between chunks to preserve context.
+    
+*   \[ \] **PII Sanitization Hook:** Integration point for masking sensitive data before it hits the provider API.
+    
+
+#### **v0.9.x: Ecosystem & Adapters**
+
+*   \[ \] **Provider Expansion:** Add native adapters for OpenAI, Cohere, and local Transformers (via informers gem).
+    
+*   \[ \] **Gem Documentation:** Full API documentation and a "Best Practices" guide for threshold tuning.
+    
+*   \[ \] **LangChain.rb Integration:** Provide a standard interface for use within the Ruby AI ecosystem.
+    
+
+#### **v1.0.0: Production Ready**
+
+*   \[ \] **Benchmark Suite:** Comparative performance tests against character-based chunkers.
+    
+*   \[ \] **Stable Public API:** Finalizing the class structure for long-term compatibility.
 
 ## Contributing
 
