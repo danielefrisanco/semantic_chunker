@@ -1,17 +1,21 @@
 # Rakefile
 require "bundler/gem_tasks"
 require "rspec/core/rake_task"
-require "yard/rake/task"
 
 RSpec::Core::RakeTask.new(:spec)
 
-task default: :spec
-
-YARD::Rake::YardocTask.new(:yard) do |t|
-  t.files = ['lib/**/*.rb']
-  t.options = ['--output-dir', 'docs']
+begin
+  require "yard/rake/task"
+  YARD::Rake::YardocTask.new(:yard) do |t|
+    t.files = ['lib/**/*.rb']
+    t.options = ['--output-dir', 'docs']
+  end
+rescue LoadError
+  # If YARD isn't available, we just don't define the :yard task
+  # or we define a dummy task that explains why it's missing.
 end
 
+task default: :spec
 namespace :release do
   desc "Bump version and create git tag (e.g., rake release:bump[patch])"
   task :bump, [:level] do |t, args|

@@ -4,5 +4,5 @@
 # This module contains the version of the gem
 module SemanticChunker
   # The current version of the gem
-  VERSION = "0.6.3"
+  VERSION = "0.6.4"
 end
