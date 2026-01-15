@@ -24,6 +24,9 @@ OptionParser.new do |opts|
     puts SemanticChunker::VERSION
     exit
   end
+  opts.on("-d", "--drift FLOAT", Float, "Anchor-sentence drift threshold (e.g., 0.75)") do |d|
+    options[:drift_threshold] = d
+  end
 end.parse!
 
 input_file = ARGV[0]
@@ -48,7 +51,8 @@ chunker = SemanticChunker::Chunker.new(
   embedding_provider: provider,
   threshold: options[:threshold],
   max_chunk_size: options[:max_size],
-  buffer_size: options[:buffer]
+  buffer_size: options[:buffer],
+  drift_threshold: options[:drift_threshold]
 )
 
 chunks = chunker.chunks_for(text)

@@ -1,6 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.6.4] - 2026-01-15
+### Added
+- **Anchor-Sentence Drift Protection**: New optional feature to prevent topic bleed.
+- **CLI Drift Flag**: Added `-d` and `--drift` flags to the command-line interface.
+- **Drift Validation**: Added input validation to ensure thresholds stay within semantic bounds (-1.0 to 1.0).
+
+### Fixed
+- Improved internal centroid calculation efficiency for long chunks.
 
 ## [0.6.3] - 2026-01-10
 ### Added

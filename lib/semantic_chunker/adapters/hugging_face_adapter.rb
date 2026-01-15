@@ -24,12 +24,10 @@ module SemanticChunker
       # Initializes a new HuggingFaceAdapter.
       #
       # @param api_key [String] The Hugging Face API key.
-      # @param model [String] The name of the model to use.
+      # @param model [String] The name of the model to use. I.E. 'sentence-transformers/all-MiniLM-L6-v2' or 'BAAI/bge-small-en-v1.5'
       def initialize(api_key:, model: 'intfloat/multilingual-e5-large')
         @api_key = api_key
         @model = model
-        # @model = 'sentence-transformers/all-MiniLM-L6-v2'
-        # @model = 'BAAI/bge-small-en-v1.5'
       end
 
       # Fetches embeddings for the given sentences from the Hugging Face API.

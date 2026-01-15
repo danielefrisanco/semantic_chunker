@@ -160,5 +160,58 @@ RSpec.describe SemanticChunker::Chunker do
         expect(chunker.send(:resolve_threshold, [[1, 0], [1, 0], [1, 0]])).to eq(0.95)
       end
     end
+    context "with Anchor-Sentence Drift Protection" do
+      let(:drift_threshold) { 0.75 }
+      let(:chunker_with_drift) do
+        described_class.new(
+          embedding_provider: fake_adapter,
+          threshold: 0.8,
+          drift_threshold: drift_threshold,
+          buffer_size: 0 # Disable buffer for clean vector testing
+        )
+      end
+
+      it "splits when a sentence drifts too far from the anchor, even if it matches the neighbor" do
+        # Topic A: [1, 0]
+        # Topic A.1: [0.96, 0.28] (~0.96 sim to A)
+        # Topic A.2: [0.8, 0.6]    (~0.83 sim to A.1 neighbor, BUT ~0.80 sim to Anchor A)
+        # Topic B: [0.6, 0.8]      (~0.96 sim to A.2 neighbor, BUT ~0.60 sim to Anchor A -> DRIFT!)
+
+        text = "Anchor topic. Neighbor sentence. Slow drift. Final sentence."
+        
+        allow(fake_adapter).to receive(:embed).and_return([
+          [1, 0],       # S1: Anchor
+          [0.96, 0.28], # S2: Close to S1 (Sim: 0.96)
+          [0.8, 0.6],   # S3: Close to S2 (Sim: 0.83), Close to Anchor (Sim: 0.80)
+          [0.6, 0.8]    # S4: Close to S3 (Sim: 0.96), FAR from Anchor (Sim: 0.60)
+        ])
+
+        result = chunker_with_drift.chunks_for(text)
+
+        # It should split at S4 because 0.60 < 0.75 (drift_threshold)
+        # Without drift protection, this would likely be 1 giant chunk.
+        expect(result.size).to eq(2)
+        expect(result[0]).to include("Anchor topic. Neighbor sentence. Slow drift.")
+        expect(result[1]).to eq("Final sentence.")
+      end
+
+      it "does not split if drift_threshold is nil (default behavior)" do
+        # Use the standard chunker from your 'let' block which has drift_threshold: nil
+        allow(fake_adapter).to receive(:embed).and_return([
+          [1, 0], [0.96, 0.28], [0.8, 0.6], [0.6, 0.8]
+        ])
+
+        result = chunker.chunks_for("S1. S2. S3. S4.")
+        
+        # Neighbor similarity stays high enough (~0.8+), so it stays as 1 chunk
+        expect(result.size).to eq(1)
+      end
+
+      it "raises ArgumentError if drift_threshold is out of bounds" do
+        expect {
+          described_class.new(embedding_provider: fake_adapter, drift_threshold: 1.5)
+        }.to raise_error(ArgumentError, /drift_threshold must be a Numeric between -1.0 and 1.0/)
+      end
+    end
   end
 end

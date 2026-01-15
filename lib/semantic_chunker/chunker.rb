@@ -20,12 +20,14 @@ module SemanticChunker
     # @param threshold [Float, Symbol] The cosine similarity threshold or :auto.
     # @param buffer_size [Integer, Symbol] The buffer size or :auto.
     # @param max_chunk_size [Integer] The maximum size of a chunk in characters.
+    # @param drift_threshold [Float] The threshold to detect semantic drift from the beginning of a chunk.
     # @param segmenter_options [Hash] Options for the PragmaticSegmenter.
-    def initialize(embedding_provider: nil, threshold: DEFAULT_THRESHOLD, buffer_size: DEFAULT_BUFFER, max_chunk_size: DEFAULT_MAX_SIZE, segmenter_options: {})
+    def initialize(embedding_provider: nil, threshold: DEFAULT_THRESHOLD, buffer_size: DEFAULT_BUFFER, max_chunk_size: DEFAULT_MAX_SIZE, drift_threshold: nil, segmenter_options: {})
       @provider = embedding_provider || SemanticChunker.configuration&.provider
       @threshold = threshold
       @buffer_size = buffer_size
       @max_chunk_size = max_chunk_size
+      @drift_threshold = validate_drift_threshold(drift_threshold || SemanticChunker.configuration&.drift_threshold)
       @segmenter_options = segmenter_options # e.g., { language: 'hy', doc_type: 'pdf' }
 
       raise ArgumentError, 'A provider must be configured' if @provider.nil?
@@ -56,6 +58,16 @@ module SemanticChunker
     end
 
     private
+
+    def validate_drift_threshold(val)
+      return nil if val.nil? # Keep it off by default
+      
+      unless val.is_a?(Numeric) && val.between?(-1.0, 1.0)
+        raise ArgumentError, "drift_threshold must be a Numeric between -1.0 and 1.0 (received #{val.inspect})"
+      end
+      
+      val
+    end
 
     # Determines the buffer size based on the average sentence length.
     #
@@ -107,21 +119,34 @@ module SemanticChunker
     def calculate_groups(sentences, embeddings, resolved_threshold)
       chunks = []
       current_chunk_text = [sentences[0]]
-      current_chunk_vectors = [Vector[*embeddings[0]]]
+      # The Anchor is the first vector of the new chunk
+      anchor_vector = Vector[*embeddings[0]]
+      current_chunk_vectors = [anchor_vector]
 
       (1...sentences.size).each do |i|
         new_sentence = sentences[i]
         new_vec = Vector[*embeddings[i]]
 
+        # 1. Similarity to Centroid (Current behavior)
         centroid = current_chunk_vectors.inject(:+) / current_chunk_vectors.size.to_f
-        sim = cosine_similarity(centroid, new_vec)
+        centroid_sim = cosine_similarity(centroid, new_vec)
+
+        # 2. Similarity to Anchor (New behavior)
+        # We only check this if @drift_threshold is configured
+        drifted = false
+        if @drift_threshold
+          anchor_sim = cosine_similarity(anchor_vector, new_vec)
+          drifted = anchor_sim < @drift_threshold
+        end
+
 
         potential_size = current_chunk_text.join(' ').length + new_sentence.length + 1
 
-        # Use the resolved_threshold instead of @threshold
-        if sim < resolved_threshold || potential_size > @max_chunk_size
+        # Logic: Split if Centroid similarity is low OR it drifted from Anchor OR max size reached
+        if centroid_sim < resolved_threshold || drifted || potential_size > @max_chunk_size
           chunks << current_chunk_text.join(' ')
           current_chunk_text = [new_sentence]
+          anchor_vector = new_vec # Reset Anchor for the new chunk
           current_chunk_vectors = [new_vec]
         else
           current_chunk_text << new_sentence

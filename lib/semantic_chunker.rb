@@ -40,10 +40,11 @@ module SemanticChunker
   class Configuration
     # @!attribute [rw] provider
     #   @return [Symbol] The provider to use for semantic chunking.
-    attr_accessor :provider
+    attr_accessor :provider, :drift_threshold
 
     def initialize
       @provider = nil # User must set this
+      @drift_threshold = nil
     end
   end
 end

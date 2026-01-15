@@ -240,6 +240,20 @@ You can set a hard limit on the character length of a chunk using `max_chunk_siz
 chunker = SemanticChunker::Chunker.new(max_chunk_size: 1000)
 ```
 
+### Anchor-Sentence Drift Protection (v0.6.4)
+While standard semantic chunking looks at the "local" flow of sentences, long chunks can sometimes suffer from **Topic Drift** (the "Telephone Game" effect).
+
+By setting a `drift_threshold`, the chunker compares every new sentence not just to its neighbors, but also to the **Anchor** (the very first sentence of the chunk). If the meaning wanders too far from the starting topic, a split is forced.
+
+**Usage:**
+```ruby
+# Recommended drift_threshold is 0.75 to 0.80
+chunker = SemanticChunker::Chunker.new(drift_threshold: 0.75)
+```
+```bash
+semantic_chunker -t auto --drift 0.75 document.txt
+```
+
 ### Adapters
 
 The gem is designed to be extensible with different embedding providers. It currently ships with:
@@ -432,7 +446,7 @@ The Hugging Face adapter is built for production-grade reliability:
     
 *   \[x\] **Robust Error Handling:** API retry logic and validation.
     
-*   \[ \] **Anchor-Sentence Drift Protection:** Prevents topic-bleed by comparing current sentences against the chunk's starting "anchor."
+*   \[x\] **Anchor-Sentence Drift Protection:** Prevents topic-bleed by comparing current sentences against the chunk's starting "anchor."
     
 *   \[ \] **Multiple Breakpoint Strategies:** Support for Percentile, StandardDeviation, and Interquartile range splitting (Claude's suggestion).
     

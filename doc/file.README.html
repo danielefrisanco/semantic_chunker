@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  File: README
+  
+    &mdash; Documentation by YARD 0.9.38
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "README";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="file_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index</a> &raquo; 
+    <span class="title">File: README</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><div id='filecontents'>
+<h1 id="label-Semantic+Chunker">Semantic Chunker</h1>
+
+<p><a href="https://badge.fury.io/rb/semantic_chunker"><img src="https://badge.fury.io/rb/semantic_chunker.svg"></a></p>
+
+<p>A Ruby gem for splitting long texts into semantically related chunks. This is useful for preparing text for language models where you need to feed a model with contextually relevant information.</p>
+
+<h2 id="label-What+is+Semantic+Chunking-3F">What is Semantic Chunking?</h2>
+
+<p>Semantic chunking is a technique for splitting text based on meaning. Instead of splitting text by a fixed number of words or sentences, this gem groups sentences that are semantically related.</p>
+
+<p>It works by: 1. Splitting the text into individual sentences. 2. Generating a vector embedding for each sentence using a configurable provider (e.g., OpenAI, Hugging Face). 3. Comparing the new sentence’s windowed embedding to the <strong>centroid (average) of the current chunk’s embeddings</strong>. 4. If the similarity between the new sentence and the chunk’s centroid is below a certain threshold, a new chunk is started. This prevents topic drift. 5. The process is enhanced by a <strong>buffer window</strong>, which considers multiple sentences at a time to make more robust decisions.</p>
+
+<p>This results in chunks of text that are topically coherent.</p>
+
+<h2 id="label-Compatibility">Compatibility</h2>
+
+<p>This gem requires Ruby 3.0 or higher.</p>
+
+<h2 id="label-Installation">Installation</h2>
+
+<p>This gem relies on two key dependencies for its logic:</p>
+<ol><li>
+<p><strong>matrix</strong>: Used for high-performance vector calculations and centroid math.</p>
+</li><li>
+<p><strong>pragmatic_segmenter</strong>: Used for rule-based sentence boundary detection (handling abbreviations, initials, and citations).</p>
+</li></ol>
+
+<p>Add these lines to your application’s Gemfile:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'># Required for Ruby 3.1+ 
+</span><span class='id identifier rubyid_gem'>gem</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>matrix</span><span class='tstring_end'>&#39;</span></span>
+
+<span class='comment'># Required for high-quality sentence splitting
+</span><span class='id identifier rubyid_gem'>gem</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>pragmatic_segmenter</span><span class='tstring_end'>&#39;</span></span>
+
+<span class='id identifier rubyid_gem'>gem</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>semantic_chunker</span><span class='tstring_end'>&#39;</span></span>
+</code></pre>
+
+<p>And then execute:</p>
+
+<pre class="code ruby"><code class="ruby">$ bundle install
+</code></pre>
+
+<p>Or install it yourself as:</p>
+
+<pre class="code ruby"><code class="ruby">$ gem install semantic_chunker
+</code></pre>
+
+<h2 id="label-Usage">Usage</h2>
+
+<p>Here is a basic example of how to use <code>semantic_chunker</code>:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_require'>require</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>semantic_chunker</span><span class='tstring_end'>&#39;</span></span>
+
+<span class='comment'># 1. Configure the provider
+</span><span class='comment'># You can configure the provider globally.
+</span><span class='comment'># This is useful in a Rails initializer for example.
+</span><span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_configure'><span class='object_link'><a href="SemanticChunker.html#configure-class_method" title="SemanticChunker.configure (method)">configure</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_config'>config</span><span class='op'>|</span>
+  <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_provider'>provider</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Adapters.html" title="SemanticChunker::Adapters (module)">Adapters</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Adapters/HuggingFaceAdapter.html" title="SemanticChunker::Adapters::HuggingFaceAdapter (class)">HuggingFaceAdapter</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Adapters/HuggingFaceAdapter.html#initialize-instance_method" title="SemanticChunker::Adapters::HuggingFaceAdapter#initialize (method)">new</a></span></span><span class='lparen'>(</span>
+    <span class='label'>api_key:</span> <span class='const'>ENV</span><span class='period'>.</span><span class='id identifier rubyid_fetch'>fetch</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>HUGGING_FACE_API_KEY</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='comma'>,</span>
+    <span class='label'>model:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>sentence-transformers/all-MiniLM-L6-v2</span><span class='tstring_end'>&quot;</span></span>
+  <span class='rparen'>)</span>
+<span class='kw'>end</span>
+
+<span class='comment'># 2. Create a chunker and process your text
+</span><span class='id identifier rubyid_chunker'>chunker</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Chunker.html" title="SemanticChunker::Chunker (class)">Chunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Chunker.html#initialize-instance_method" title="SemanticChunker::Chunker#initialize (method)">new</a></span></span><span class='lparen'>(</span>
+  <span class='label'>threshold:</span> <span class='float'>0.8</span><span class='comma'>,</span> 
+  <span class='label'>buffer_size:</span> <span class='symbol'>:auto</span><span class='comma'>,</span> 
+  <span class='label'>max_chunk_size:</span> <span class='int'>1000</span>
+<span class='rparen'>)</span>
+<span class='id identifier rubyid_text'>text</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Your very long document text goes here. It can contain multiple paragraphs and topics. The chunker will split it into meaningful parts.</span><span class='tstring_end'>&quot;</span></span>
+<span class='id identifier rubyid_chunks'>chunks</span> <span class='op'>=</span> <span class='id identifier rubyid_chunker'>chunker</span><span class='period'>.</span><span class='id identifier rubyid_chunks_for'>chunks_for</span><span class='lparen'>(</span><span class='id identifier rubyid_text'>text</span><span class='rparen'>)</span>
+
+<span class='comment'># chunks will be an array of strings.
+</span><span class='comment'># The strings preserve the original formatting and whitespace.
+</span><span class='id identifier rubyid_chunks'>chunks</span><span class='period'>.</span><span class='id identifier rubyid_each_with_index'>each_with_index</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_chunk'>chunk</span><span class='comma'>,</span> <span class='id identifier rubyid_i'>i</span><span class='op'>|</span>
+  <span class='id identifier rubyid_puts'>puts</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Chunk </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_i'>i</span><span class='op'>+</span><span class='int'>1</span><span class='embexpr_end'>}</span><span class='tstring_content'>:</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_puts'>puts</span> <span class='id identifier rubyid_chunk'>chunk</span>
+  <span class='id identifier rubyid_puts'>puts</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>---</span><span class='tstring_end'>&quot;</span></span>
+<span class='kw'>end</span>
+</code></pre>
+
+<h2 id="label-Rails+Integration">Rails Integration</h2>
+
+<p>For Rails applications, here is a recommended setup:</p>
+
+<h3 id="label-1.+Initializer">1. Initializer</h3>
+
+<p>Create an initializer to configure the gem globally. This is where you should set up your embedding provider using Rails credentials.</p>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'># config/initializers/semantic_chunker.rb
+</span><span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_configure'><span class='object_link'><a href="SemanticChunker.html#configure-class_method" title="SemanticChunker.configure (method)">configure</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_config'>config</span><span class='op'>|</span>
+  <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_provider'>provider</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Adapters.html" title="SemanticChunker::Adapters (module)">Adapters</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Adapters/HuggingFaceAdapter.html" title="SemanticChunker::Adapters::HuggingFaceAdapter (class)">HuggingFaceAdapter</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Adapters/HuggingFaceAdapter.html#initialize-instance_method" title="SemanticChunker::Adapters::HuggingFaceAdapter#initialize (method)">new</a></span></span><span class='lparen'>(</span>
+    <span class='label'>api_key:</span> <span class='const'>Rails</span><span class='period'>.</span><span class='id identifier rubyid_application'>application</span><span class='period'>.</span><span class='id identifier rubyid_credentials'>credentials</span><span class='period'>.</span><span class='id identifier rubyid_dig'>dig</span><span class='lparen'>(</span><span class='symbol'>:hugging_face</span><span class='comma'>,</span> <span class='symbol'>:api_key</span><span class='rparen'>)</span><span class='comma'>,</span>
+    <span class='label'>model:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>sentence-transformers/all-MiniLM-L6-v2</span><span class='tstring_end'>&quot;</span></span>
+  <span class='rparen'>)</span>
+<span class='kw'>end</span>
+</code></pre>
+
+<h3 id="label-2.+Model+Usage">2. Model Usage</h3>
+
+<p>You can use the chunker within your models, for example, to chunk a document’s content before saving or for indexing in a search engine.</p>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'># app/models/document.rb
+</span><span class='kw'>class</span> <span class='const'>Document</span> <span class='op'>&lt;</span> <span class='const'>ApplicationRecord</span>
+  <span class='kw'>def</span> <span class='id identifier rubyid_semantic_chunks'>semantic_chunks</span>
+    <span class='id identifier rubyid_chunker'>chunker</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Chunker.html" title="SemanticChunker::Chunker (class)">Chunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Chunker.html#initialize-instance_method" title="SemanticChunker::Chunker#initialize (method)">new</a></span></span>
+    <span class='id identifier rubyid_chunker'>chunker</span><span class='period'>.</span><span class='id identifier rubyid_chunks_for'>chunks_for</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_content'>content</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span>
+</code></pre>
+
+<h3 id="label-3.+Caching">3. Caching</h3>
+
+<p>To avoid re-embedding the same content, which can be slow and costly, consider implementing a caching strategy. You can cache the embeddings or the final chunks. Here is a simple example using <code>Rails.cache</code>:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'># app/models/document.rb
+</span><span class='kw'>class</span> <span class='const'>Document</span> <span class='op'>&lt;</span> <span class='const'>ApplicationRecord</span>
+  <span class='kw'>def</span> <span class='id identifier rubyid_semantic_chunks'>semantic_chunks</span>
+    <span class='const'>Rails</span><span class='period'>.</span><span class='id identifier rubyid_cache'>cache</span><span class='period'>.</span><span class='id identifier rubyid_fetch'>fetch</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>document_</span><span class='embexpr_beg'>#{</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='embexpr_end'>}</span><span class='tstring_content'>_chunks</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>expires_in:</span> <span class='int'>12</span><span class='period'>.</span><span class='id identifier rubyid_hours'>hours</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_chunker'>chunker</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Chunker.html" title="SemanticChunker::Chunker (class)">Chunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Chunker.html#initialize-instance_method" title="SemanticChunker::Chunker#initialize (method)">new</a></span></span>
+      <span class='id identifier rubyid_chunker'>chunker</span><span class='period'>.</span><span class='id identifier rubyid_chunks_for'>chunks_for</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_content'>content</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span>
+</code></pre>
+
+<h2 id="label-Configuration">Configuration</h2>
+
+<h3 id="label-Sentence+Splitting+-28Pragmatic+Segmenter-29">Sentence Splitting (Pragmatic Segmenter)</h3>
+
+<p>This gem uses <code>pragmatic_segmenter</code> for high-quality sentence splitting. You can pass options directly to it using the <code>segmenter_options</code> hash during chunker initialization. This is useful for handling different languages or document types.</p>
+
+<p>The following options are available: - <code>language</code>: Specifies the language of the text (e.g., <code>&#39;en&#39;</code> for English, <code>&#39;hy&#39;</code> for Armenian). - <code>doc_type</code>: Optimizes segmentation for specific document formats (e.g., <code>&#39;pdf&#39;</code>). - <code>clean</code>: When <code>false</code>, disables the preliminary text cleaning process.</p>
+
+<p><strong>Examples:</strong></p>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'># Example 1: Processing an Armenian PDF
+</span><span class='id identifier rubyid_chunker'>chunker</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Chunker.html" title="SemanticChunker::Chunker (class)">Chunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Chunker.html#initialize-instance_method" title="SemanticChunker::Chunker#initialize (method)">new</a></span></span><span class='lparen'>(</span>
+  <span class='label'>segmenter_options:</span> <span class='lbrace'>{</span> <span class='label'>language:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>hy</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='label'>doc_type:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>pdf</span><span class='tstring_end'>&#39;</span></span> <span class='rbrace'>}</span>
+<span class='rparen'>)</span>
+
+<span class='comment'># Example 2: Disabling text cleaning for strict raw data
+</span><span class='id identifier rubyid_chunker'>chunker</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Chunker.html" title="SemanticChunker::Chunker (class)">Chunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Chunker.html#initialize-instance_method" title="SemanticChunker::Chunker#initialize (method)">new</a></span></span><span class='lparen'>(</span>
+  <span class='label'>segmenter_options:</span> <span class='lbrace'>{</span> <span class='label'>clean:</span> <span class='kw'>false</span> <span class='rbrace'>}</span>
+<span class='rparen'>)</span>
+</code></pre>
+
+<h3 id="label-Global+Configuration">Global Configuration</h3>
+
+<p>You can configure the embedding provider globally, which is useful in frameworks like Rails.</p>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'># config/initializers/semantic_chunker.rb
+</span><span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_configure'><span class='object_link'><a href="SemanticChunker.html#configure-class_method" title="SemanticChunker.configure (method)">configure</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_config'>config</span><span class='op'>|</span>
+  <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_provider'>provider</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Adapters.html" title="SemanticChunker::Adapters (module)">Adapters</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Adapters/HuggingFaceAdapter.html" title="SemanticChunker::Adapters::HuggingFaceAdapter (class)">HuggingFaceAdapter</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Adapters/HuggingFaceAdapter.html#initialize-instance_method" title="SemanticChunker::Adapters::HuggingFaceAdapter#initialize (method)">new</a></span></span><span class='lparen'>(</span>
+    <span class='label'>api_key:</span> <span class='const'>ENV</span><span class='period'>.</span><span class='id identifier rubyid_fetch'>fetch</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>HUGGING_FACE_API_KEY</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='comma'>,</span>
+    <span class='label'>model:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>sentence-transformers/all-MiniLM-L6-v2</span><span class='tstring_end'>&quot;</span></span>
+  <span class='rparen'>)</span>
+<span class='kw'>end</span>
+</code></pre>
+
+<h3 id="label-Per-instance+Configuration">Per-instance Configuration</h3>
+
+<p>You can also pass a provider directly to the <code>Chunker</code> instance. This will override any global configuration.</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_provider'>provider</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Adapters.html" title="SemanticChunker::Adapters (module)">Adapters</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Adapters/HuggingFaceAdapter.html" title="SemanticChunker::Adapters::HuggingFaceAdapter (class)">HuggingFaceAdapter</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Adapters/HuggingFaceAdapter.html#initialize-instance_method" title="SemanticChunker::Adapters::HuggingFaceAdapter#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='label'>api_key:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>your-key</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+<span class='id identifier rubyid_chunker'>chunker</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Chunker.html" title="SemanticChunker::Chunker (class)">Chunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Chunker.html#initialize-instance_method" title="SemanticChunker::Chunker#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='label'>embedding_provider:</span> <span class='id identifier rubyid_provider'>provider</span><span class='rparen'>)</span>
+</code></pre>
+
+<h3 id="label-Threshold">Threshold</h3>
+
+<p>You can configure the similarity threshold. The default is <code>0.82</code>.</p>
+
+<blockquote>
+<p><strong>Note:</strong> The default value is optimized for the <code>sentence-transformers/all-MiniLM-L6-v2</code> model. You may need to adjust this value significantly for other models, especially those with different embedding dimensions (e.g., OpenAI’s <code>text-embedding-3-large</code>).</p>
+</blockquote>
+<ol><li>
+<p>Higher threshold (e.g., 0.95): Requires very high similarity to keep sentences together, resulting in more, smaller chunks.</p>
+</li><li>
+<p>Lower threshold (e.g., 0.50): Is more "forgiving," resulting in fewer, larger chunks.</p>
+</li></ol>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'># Lower threshold, fewer chunks
+</span><span class='id identifier rubyid_chunker'>chunker</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Chunker.html" title="SemanticChunker::Chunker (class)">Chunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Chunker.html#initialize-instance_method" title="SemanticChunker::Chunker#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='label'>threshold:</span> <span class='float'>0.7</span><span class='rparen'>)</span>
+
+<span class='comment'># Higher threshold, more chunks
+</span><span class='id identifier rubyid_chunker'>chunker</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Chunker.html" title="SemanticChunker::Chunker (class)">Chunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Chunker.html#initialize-instance_method" title="SemanticChunker::Chunker#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='label'>threshold:</span> <span class='float'>0.9</span><span class='rparen'>)</span>
+</code></pre>
+
+<h3 id="label-Dynamic+Thresholding+-28v0.6.0-29">Dynamic Thresholding (v0.6.0)</h3>
+
+<p>With the introduction of <strong>Dynamic Thresholding</strong>, SemanticChunker is now model-agnostic. It automatically adapts to the vector density of different embedding models (e.g., OpenAI, E5, BGE, or Hugging Face).</p>
+
+<h3 id="label-Threshold+Modes">Threshold Modes</h3>
+
+<p>| Mode | Syntax | Description |  | - | - | - | | Static | <code>0.82</code> | Splits when similarity drops below a fixed number. Use this if you have a specific model tuned to a known threshold. | | Auto | <code>:auto</code> | (Default) Calculates the 15th percentile of similarities in the document and splits at the “valleys.” | | Percentile | <code>{ percentile: 10 }</code> | Advanced control. A lower percentile creates fewer, larger chunks; a higher percentile creates more, smaller chunks. |</p>
+
+<h3 id="label-Which+one+should+I+use-3F">Which one should I use?</h3>
+<ul><li>
+<p><strong>Use :auto</strong> if you are swapping models frequently or using open-source models from Hugging Face. It prevents the “One Giant Chunk” bug that happens when models have low similarity ranges.</p>
+</li><li>
+<p><strong>Use a Static number</strong> if you require strictly deterministic behavior across different documents and know your model’s distribution.</p>
+
+<h3 id="label-Buffer+Windows+-28Buffer+Size-29">Buffer Windows (Buffer Size)</h3>
+</li></ul>
+
+<p>The buffer_size parameter defines a sliding “context window.” Instead of embedding a single sentence in isolation, the chunker combines a sentence with its neighbors. This “semantic smoothing” prevents false splits caused by short sentences or pronouns (like “He” or “It”) that lack context.</p>
+<ul><li>
+<p><strong>0</strong>: No buffer. Each sentence is embedded exactly as written. Best for very long, self-contained paragraphs.</p>
+</li><li>
+<p><strong>1 (Default)</strong>: Looks 1 sentence back and 1 sentence forward. For sentence $i$, the embedding represents $S<em>i-1 + S_i + S</em>i+1$.</p>
+</li><li>
+<p><strong>2</strong>: Looks 2 sentences back and 2 forward. This creates a large 5-sentence context for every comparison.</p>
+</li><li>
+<p><strong>:auto</strong>: The chunker analyzes the density of your text and automatically selects the best window:</p>
+<ul><li>
+<p><strong>Short sentences</strong> (avg &lt; 60 chars): Uses buffer_size: 2 (Captures conversation flow).</p>
+</li><li>
+<p><strong>Medium sentences</strong> (avg 60–150 chars): Uses buffer_size: 1 (Standard).</p>
+</li><li>
+<p><strong>Long sentences</strong> (avg &gt; 150 chars): Uses buffer_size: 0 (High precision).</p>
+</li></ul>
+</li></ul>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_chunker'>chunker</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Chunker.html" title="SemanticChunker::Chunker (class)">Chunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Chunker.html#initialize-instance_method" title="SemanticChunker::Chunker#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='label'>buffer_size:</span> <span class='symbol'>:auto</span><span class='rparen'>)</span>
+</code></pre>
+
+<h3 id="label-Max+Chunk+Size">Max Chunk Size</h3>
+
+<p>You can set a hard limit on the character length of a chunk using <code>max_chunk_size</code>. This is useful for ensuring chunks do not exceed the context window of a language model. A split will be forced, even if sentences are semantically related. The default is <code>1500</code>.</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_chunker'>chunker</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Chunker.html" title="SemanticChunker::Chunker (class)">Chunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Chunker.html#initialize-instance_method" title="SemanticChunker::Chunker#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='label'>max_chunk_size:</span> <span class='int'>1000</span><span class='rparen'>)</span>
+</code></pre>
+
+<h3 id="label-Adapters">Adapters</h3>
+
+<p>The gem is designed to be extensible with different embedding providers. It currently ships with:</p>
+<ul><li>
+<p><code>SemanticChunker::Adapters::OpenAIAdapter</code>: For OpenAI’s embedding models.</p>
+</li><li>
+<p><code>SemanticChunker::Adapters::HuggingFaceAdapter</code>: For Hugging Face’s embedding models.</p>
+</li><li>
+<p><code>SemanticChunker::Adapters::TestAdapter</code>: A simple adapter for testing purposes.</p>
+</li></ul>
+
+<p>You can create your own adapter by creating a class that inherits from <code>SemanticChunker::Adapters::Base</code> and implements an <code>embed(sentences)</code> method.</p>
+
+<p>The <code>embed</code> method must return an <code>Array</code> of <code>Array</code>s, where each inner array is an embedding (a list of floats). The <code>Chunker</code> will automatically handle the conversion of these arrays into <code>Vector</code> objects for similarity calculations.</p>
+
+<p>For consistency, it’s recommended to place your custom adapter class within the <code>SemanticChunker::Adapters</code> namespace, although this is not a strict requirement.</p>
+
+<h2 id="label-Development+-26+Testing">Development &amp; Testing</h2>
+
+<p>To run the tests, you’ll need to install the development dependencies:</p>
+
+<pre class="code ruby"><code class="ruby">$ bundle install
+</code></pre>
+
+<h3 id="label-Unit+Tests">Unit Tests</h3>
+
+<p>Run the unit tests with:</p>
+
+<pre class="code ruby"><code class="ruby">$ bundle exec rspec
+</code></pre>
+
+<h3 id="label-Integration+Tests">Integration Tests</h3>
+
+<p>The integration tests use third-party APIs and require API keys.</p>
+
+<p><strong>OpenAI</strong></p>
+
+<pre class="code ruby"><code class="ruby">$ OPENAI_API_KEY=&quot;your-key&quot; bundle exec ruby test_integration.rb
+</code></pre>
+
+<p><strong>Hugging Face</strong></p>
+
+<pre class="code ruby"><code class="ruby">$ HUGGING_FACE_API_KEY=&quot;your-key&quot; bundle exec ruby test_hugging_face.rb
+</code></pre>
+
+<h3 id="label-Documentation">Documentation</h3>
+
+<p>This project uses YARD for documentation. To generate the documentation, run:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_bundle'>bundle</span> <span class='id identifier rubyid_exec'>exec</span> <span class='id identifier rubyid_rake'>rake</span> <span class='id identifier rubyid_yard'>yard</span>
+</code></pre>
+
+<p>This will generate the documentation in the <code>docs</code> directory.</p>
+
+<h3 id="label-Security+Note-3A+Handling+API+Keys">Security Note: Handling API Keys</h3>
+
+<p>When using an adapter that requires an API key, <strong>never hardcode your API keys</strong> directly into your source code. To keep your application secure (especially if you are working on public repositories), use one of the following methods:</p>
+
+<h4 id="label-Using+Rails+Credentials+-28Recommended+for+Rails-29">Using Rails Credentials (Recommended for Rails)</h4>
+
+<p>Store your key in your encrypted credentials file:</p>
+
+<pre class="code ruby"><code class="ruby">bin/rails credentials:edit
+</code></pre>
+
+<p>Then reference it in your initializer:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='period'>.</span><span class='id identifier rubyid_configure'><span class='object_link'><a href="SemanticChunker.html#configure-class_method" title="SemanticChunker.configure (method)">configure</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_config'>config</span><span class='op'>|</span>
+  <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_provider'>provider</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="SemanticChunker.html" title="SemanticChunker (module)">SemanticChunker</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Adapters.html" title="SemanticChunker::Adapters (module)">Adapters</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="SemanticChunker/Adapters/HuggingFaceAdapter.html" title="SemanticChunker::Adapters::HuggingFaceAdapter (class)">HuggingFaceAdapter</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="SemanticChunker/Adapters/HuggingFaceAdapter.html#initialize-instance_method" title="SemanticChunker::Adapters::HuggingFaceAdapter#initialize (method)">new</a></span></span><span class='lparen'>(</span>       
+    <span class='label'>api_key:</span> <span class='const'>Rails</span><span class='period'>.</span><span class='id identifier rubyid_application'>application</span><span class='period'>.</span><span class='id identifier rubyid_credentials'>credentials</span><span class='period'>.</span><span class='id identifier rubyid_dig'>dig</span><span class='lparen'>(</span><span class='symbol'>:hugging_face</span><span class='comma'>,</span> <span class='symbol'>:api_key</span><span class='rparen'>)</span>
+  <span class='rparen'>)</span>
+<span class='kw'>end</span>
+</code></pre>
+
+<h4 id="label-Using+Environment+Variables">Using Environment Variables</h4>
+
+<p>Alternatively, use a gem like dotenv and fetch the key from the environment:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_api_key'>api_key</span> <span class='op'>=</span> <span class='const'>ENV</span><span class='period'>.</span><span class='id identifier rubyid_fetch'>fetch</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>YOUR_API_KEY</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Missing API Key</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span>
+</code></pre>
+
+<h2 id="label-23-23+Troubleshooting">## Troubleshooting</h2>
+
+<h3 id="label-Matrix+Dependency+-28Ruby+3.1-2B-29">Matrix Dependency (Ruby 3.1+)</h3>
+
+<p>Since Ruby 3.1, the matrix library was moved from the standard library to a bundled gem.</p>
+<ul><li>
+<p><strong>If you are on Ruby 3.1, 3.2, or 3.3:</strong> You must include gem ‘matrix’ in your Gemfile.</p>
+</li><li>
+<p><strong>If you are on Ruby 3.0:</strong> The library is built-in. If you see a “duplicate dependency” error, ensure you are not manually adding gem ‘matrix’ to your Gemfile, as the system version will take precedence.</p>
+</li></ul>
+
+<h3 id="label-Hugging+Face+-22Model+Loading-22">Hugging Face “Model Loading”</h3>
+
+<p>If you receive a 503 Service Unavailable error when using the Hugging Face adapter, it usually means the model is being loaded onto the server for the first time.</p>
+<ul><li>
+<p><strong>Solution:</strong> Wait 30 seconds and try again. The HuggingFaceAdapter is designed to be lightweight, but serverless endpoints require a “warm-up” period.</p>
+</li></ul>
+
+<h3 id="label-Encoding+Issues">Encoding Issues</h3>
+
+<p>If your text contains complex Unicode or non-UTF-8 characters, pragmatic_segmenter may behave unexpectedly.</p>
+<ul><li>
+<p><strong>Solution:</strong> Ensure your input string is UTF-8 encoded: text.encode(‘UTF-8’, invalid: :replace, undef: :replace).</p>
+</li></ul>
+
+<h2 id="label-Command+Line+Interface+-28CLI-29">Command Line Interface (CLI)</h2>
+
+<p>SemanticChunker includes a powerful CLI that allows you to chunk files or piped text directly from your terminal. This is ideal for quick testing or integrating with non-Ruby applications.</p>
+
+<h3 id="label-Installation">Installation</h3>
+
+<p>The CLI is included when you install the gem:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_gem'>gem</span> <span class='id identifier rubyid_install'>install</span> <span class='id identifier rubyid_semantic_chunker'>semantic_chunker</span>
+</code></pre>
+
+<h3 id="label-Usage">Usage</h3>
+
+<p>The CLI will automatically look for your HUGGING_FACE_API_KEY or OPENAI_API_KEY in your environment or a .env file.</p>
+
+<pre class="code ruby"><code class="ruby"># Basic usage with automatic thresholding
+semantic_chunker --threshold auto path/to/document.txt
+
+# Specify a static threshold and max chunk size
+semantic_chunker -t 0.85 -m 1000 document.txt
+
+# Pipe text from another command
+echo &quot;Long text here...&quot; | semantic_chunker -t auto
+</code></pre>
+
+<h3 id="label-JSON+Output">JSON Output</h3>
+
+<p>For integration with other languages (Python, Node.js) or databases, you can output the result as structured JSON:</p>
+
+<pre class="code ruby"><code class="ruby">semantic_chunker --format json document.txt
+</code></pre>
+
+<p><strong>Example JSON Output:</strong></p>
+
+<pre class="code ruby"><code class="ruby"><span class='lbrace'>{</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>metadata</span><span class='label_end'>&quot;:</span> <span class='lbrace'>{</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>source</span><span class='label_end'>&quot;:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>document.txt</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>chunk_count</span><span class='label_end'>&quot;:</span> <span class='int'>2</span><span class='comma'>,</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>threshold_used</span><span class='label_end'>&quot;:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>auto</span><span class='tstring_end'>&quot;</span></span>
+  <span class='rbrace'>}</span><span class='comma'>,</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>chunks</span><span class='label_end'>&quot;:</span> <span class='lbracket'>[</span>
+    <span class='lbrace'>{</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>index</span><span class='label_end'>&quot;:</span> <span class='int'>0</span><span class='comma'>,</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>content</span><span class='label_end'>&quot;:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>First semantic topic...</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>size</span><span class='label_end'>&quot;:</span> <span class='int'>245</span>
+    <span class='rbrace'>}</span><span class='comma'>,</span>
+    <span class='lbrace'>{</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>index</span><span class='label_end'>&quot;:</span> <span class='int'>1</span><span class='comma'>,</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>content</span><span class='label_end'>&quot;:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Second semantic topic...</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>size</span><span class='label_end'>&quot;:</span> <span class='int'>180</span>
+    <span class='rbrace'>}</span>
+  <span class='rbracket'>]</span>
+<span class='rbrace'>}</span>
+</code></pre>
+
+<h3 id="label-Options">Options</h3>
+
+<p>| Flag | Long | Flag | Description | Default | | - | - | - | - | - | | -t | –threshold | Similarity threshold (float or auto) | auto | -m | –max-size | Hard limit for character count per chunk | 1500 | -b | –buffer | Context window size (int or auto) | auto | -f | –format | Output format (text or json) | text | -v | –version | Show version info | -</p>
+
+<h2 id="label-Reliability+-26+Resilience">Reliability &amp; Resilience</h2>
+
+<p>The Hugging Face adapter is built for production-grade reliability: - <strong>Exponential Backoff</strong>: Automatically retries requests if the model is warming up or the API is busy. - <strong>Smart Timeouts</strong>: Includes connection and read timeouts to prevent your application from hanging. - <strong>Auto-Wait</strong>: Uses the <code>X-Wait-For-Model</code> header to ensure stable results on the Inference API.</p>
+
+<h2 id="label-23-23-23+Roadmap+to+v1.0.0">### Roadmap to v1.0.0</h2>
+
+<h4 id="label-v0.6.x-3A+Stability+-26+Core+Logic"><strong>v0.6.x: Stability &amp; Core Logic</strong></h4>
+<ul><li>
+<p>[x] <strong>Adaptive Dynamic Thresholding:</strong> Core semantic splitting logic.</p>
+</li><li>
+<p>[x] <strong>CLI with JSON output:</strong> Global execution and piping support.</p>
+</li><li>
+<p>[x] <strong>Robust Error Handling:</strong> API retry logic and validation.</p>
+</li><li>
+<p>[ ] <strong>Anchor-Sentence Drift Protection:</strong> Prevents topic-bleed by comparing current sentences against the chunk's starting "anchor."</p>
+</li><li>
+<p>[ ] <strong>Multiple Breakpoint Strategies:</strong> Support for Percentile, StandardDeviation, and Interquartile range splitting (Claude's suggestion).</p>
+</li></ul>
+
+<h4 id="label-v0.7.x-3A+Performance+-26+Efficiency"><strong>v0.7.x: Performance &amp; Efficiency</strong></h4>
+<ul><li>
+<p>[ ] <strong>Local Embedding Cache:</strong> SQLite or file-based cache to store sentence embeddings (saves $$$ and speeds up repeated runs).</p>
+</li><li>
+<p>[ ] <strong>Batch Processing:</strong> Support for batching multiple sentences into a single API call to HuggingFace/OpenAI.</p>
+</li><li>
+<p>[ ] <strong>Progress Indicators:</strong> CLI progress bars for large document processing.</p>
+</li></ul>
+
+<h4 id="label-v0.8.x-3A+RAG+-26+Enterprise+Features"><strong>v0.8.x: RAG &amp; Enterprise Features</strong></h4>
+<ul><li>
+<p>[ ] <strong>Rich Metadata Support:</strong> Return Chunk objects instead of raw strings, including source, index, and token counts.</p>
+</li><li>
+<p>[ ] <strong>Contextual Overlap:</strong> Support for "sliding window" overlap between chunks to preserve context.</p>
+</li><li>
+<p>[ ] <strong>PII Sanitization Hook:</strong> Integration point for masking sensitive data before it hits the provider API.</p>
+</li></ul>
+
+<h4 id="label-v0.9.x-3A+Ecosystem+-26+Adapters"><strong>v0.9.x: Ecosystem &amp; Adapters</strong></h4>
+<ul><li>
+<p>[ ] <strong>Provider Expansion:</strong> Add native adapters for OpenAI, Cohere, and local Transformers (via informers gem).</p>
+</li><li>
+<p>[ ] <strong>Gem Documentation:</strong> Full API documentation and a "Best Practices" guide for threshold tuning.</p>
+</li><li>
+<p>[ ] <strong>LangChain.rb Integration:</strong> Provide a standard interface for use within the Ruby AI ecosystem.</p>
+</li></ul>
+
+<h4 id="label-v1.0.0-3A+Production+Ready"><strong>v1.0.0: Production Ready</strong></h4>
+<ul><li>
+<p>[ ] <strong>Benchmark Suite:</strong> Comparative performance tests against character-based chunkers.</p>
+</li><li>
+<p>[ ] <strong>Stable Public API:</strong> Finalizing the class structure for long-term compatibility.</p>
+</li></ul>
+
+<h2 id="label-Contributing">Contributing</h2>
+
+<p>Bug reports and pull requests are welcome on GitHub at <a href="https://github.com/danielefrisanco/semantic_chunker">github.com/danielefrisanco/semantic_chunker</a>.</p>
+
+<h2 id="label-License">License</h2>
+
+<p>The gem is available as open source under the terms of the <a href="https://opensource.org/licenses/MIT">MIT License</a>.</p>
+</div></div>
+
+      <div id="footer">
+  Generated on Thu Jan 15 14:41:23 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-3.1.4).
+</div>
+
+    </div>
+  </body>
+</html>
